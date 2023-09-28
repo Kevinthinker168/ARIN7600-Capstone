@@ -17,6 +17,8 @@ def pct_change(stockname,start,end):
     stockdata.loc[stockdata['Close_price_percentage'] == 0,'real_situation'] ='不变'
     return stockdata
 
+
+
 def MACD(data):
     data['EMA12'] = data['Close'].ewm(span=12, adjust=False).mean()
     data['EMA26'] = data['Close'].ewm(span=26, adjust=False).mean()
@@ -59,36 +61,18 @@ def RSI(data):
     rsi_21 = talib.RSI(data["Close"],timeperiod=21)
     data["RSI21"]=rsi_21
     return data
-
-def RSI6_MACD8020(data):
-    data.loc[data['RSI6'] > 80,'Position'] = -1
-    data.loc[data['RSI6'] < 20,'Position'] = 1
+def RSI_MACD(data,rsi,upper,lower):
+    if rsi==6:
+        data.loc[data['RSI6'] > upper,'Position'] = -1
+        data.loc[data['RSI6'] < lower,'Position'] = 1
+    elif rsi==14:
+        data.loc[data['RSI14'] > upper,'Position'] = -1
+        data.loc[data['RSI14'] < lower,'Position'] = 1
+    elif rsi==21:
+        data.loc[data['RSI21'] > upper,'Position'] = -1
+        data.loc[data['RSI21'] < lower,'Position'] = 1
     return data
-
-def RSI6_MACD7030(data):
-    data.loc[data['RSI6'] > 70,'Position'] = -1
-    data.loc[data['RSI6'] < 30,'Position'] = 1
-    return data
-
-def RSI14_MACD8020(data):
-    data.loc[data['RSI14'] > 80,'Position'] = -1
-    data.loc[data['RSI14'] < 20,'Position'] = 1
-    return data
-
-def RSI14_MACD7030(data):
-    data.loc[data['RSI14'] > 70,'Position'] = -1
-    data.loc[data['RSI14'] < 30,'Position'] = 1
-    return data
-
-def RSI21_MACD8020(data):
-    data.loc[data['RSI21'] > 80,'Position'] = -1
-    data.loc[data['RSI21'] < 20,'Position'] = 1
-    return data
-
-def RSI21_MACD7030(data):
-    data.loc[data['RSI21'] > 70,'Position'] = -1
-    data.loc[data['RSI21'] < 30,'Position'] = 1
-    return data
+        
 
 def results(data):
     close_price=list(data["Close"])
