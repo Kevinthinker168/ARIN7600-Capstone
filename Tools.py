@@ -102,27 +102,41 @@ def results(data):
     buy_price=close_price[0]
     
     while i<len(close_price)-1:
-        if signal[i]==0:
+        if signal[i]==0 and signal[i+1]==0:
             i+=1
-        
-        elif signal[i]==1 and signal[i+1]==1:
             
+        elif signal[i]==0 and signal[i+1]==1:
+            buy_price=close_price[i+1]
             i+=1
+            
+        elif signal[i]==0 and signal[i+1]==-1:
+            i+=1
+            
+        elif signal[i]==1 and signal[i+1]==1:
+            i+=1
+            
         elif signal[i]==1 and signal[i+1]==-1:
             profit=close_price[i+1]-buy_price
             revenue+= profit
-            
             i+=1
+            
+        elif signal[i]==1 and signal[i+1]==0:
+            i+=1
+            
+            
         elif signal[i]==-1 and signal[i+1]==-1:
-            
             i+=1
+            
         elif signal[i]==-1 and signal[i+1]==1:
             buy_price=close_price[i+1]
-            
             i+=1
+            
+        elif signal[i]==-1 and signal[i+1]==0:
+            i+=1
+            
     strategy=revenue*1000
    
-    return rate,value_diff,strategy
+    return [rate,value_diff,strategy]
 
 
 #days collector
@@ -131,7 +145,7 @@ def days(months):
     i=1
     while i<months:
         #current_date = datetime.now()
-        current_date = datetime(year=2023, month=9, day=20)
+        current_date = datetime(year=2022, month=12, day=31)
         previous_date = current_date - relativedelta(months=i)
         previous_date  = previous_date.strftime("%Y-%m-%d")
         day_collector.append(previous_date)
