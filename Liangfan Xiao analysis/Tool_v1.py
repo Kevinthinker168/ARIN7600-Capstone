@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 
 yf.pdr_override()
 
+#Liangfan Xiao work
 def days(months):
     day_collector=[]
     i=1
@@ -29,6 +30,13 @@ def pct_change(stockname,start,end):
     stockdata.loc[stockdata['Close_price_percentage'] < 0,'real_situation'] ='跌'
     stockdata.loc[stockdata['Close_price_percentage'] == 0,'real_situation'] ='不变'
     stockdata["log_return"] = np.log(stockdata['Close'])-np.log(stockdata['Close'].shift(1))
+    
+    #Zhanhui Zhou create features
+    open_price = stock_data["Open"]
+    stock_data["re_close"] = (stock_data["Close"] - stock_data["Low"])/(stock_data["High"] - stock_data["Low"])
+    stock_data["re_open"] = (stock_data["Open"] - stock_data["Low"])/(stock_data["High"] - stock_data["Low"])
+    stock_data["up_or_down"] = ((open_price - open_price.shift(1)) > 0) * 1
+    
     return stockdata
 
 def MACD(data):
@@ -72,6 +80,7 @@ def RSI(data):
     rsi_21 = talib.RSI(data["Close"],timeperiod=21)
     data["RSI21"]=rsi_21
     return data
+
 def RSI_MACD(data,rsi,upper,lower):
     if rsi==6:
         data.loc[data['RSI6'] > upper,'Position'] = -1
@@ -83,6 +92,32 @@ def RSI_MACD(data,rsi,upper,lower):
         data.loc[data['RSI21'] > upper,'Position'] = -1
         data.loc[data['RSI21'] < lower,'Position'] = 1
     return data
+
+
+
+
+#Zhanhui Zhou work
+def my_rsi(stock_datas, span):
+    stock_data = stock_datas.copy()
+    open_price = stock_data.loc[:,"Open"]
+    close_price = stock_data.loc[:,"Close"]
+    up_or_down = close_price - open_price
+    abs_up_or_down = abs(close_price - open_price)
+    window_start = 0
+    window_end = 0
+    now_abs_sum = 0
+    now_raise_sum = 0
+    res = []
+    for window_end in range(len(up_or_down)):
+        now_abs_sum += abs_up_or_down[window_end]
+        now_raise_sum += max(up_or_down[window_end], 0)
+        if window_end > span:
+            now_abs_sum -= abs_up_or_down[window_start]
+            now_raise_sum -= max(up_or_down[window_start], 0)
+            window_start += 1
+        res.append(now_raise_sum/now_abs_sum)
+    stock_data["my_rsi"] = res
+    return stock_data
 
 class account:
     def __init__(self, stock_data):
