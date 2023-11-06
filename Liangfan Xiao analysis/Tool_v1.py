@@ -32,11 +32,12 @@ def pct_change(stockname,start,end):
     stockdata["log_return"] = np.log(stockdata['Close'])-np.log(stockdata['Close'].shift(1))
     
     #Zhanhui Zhou create features
-    open_price = stock_data["Open"]
-    stock_data["re_close"] = (stock_data["Close"] - stock_data["Low"])/(stock_data["High"] - stock_data["Low"])
-    stock_data["re_open"] = (stock_data["Open"] - stock_data["Low"])/(stock_data["High"] - stock_data["Low"])
-    stock_data["up_or_down"] = ((open_price - open_price.shift(1)) > 0) * 1
+    open_price = stockdata["Open"]
+    stockdata["re_close"] = (stockdata["Close"] - stockdata["Low"])/(stockdata["High"] - stockdata["Low"])
+    stockdata["re_open"] = (stockdata["Open"] - stockdata["Low"])/(stockdata["High"] - stockdata["Low"])
     
+    
+    stockdata = stockdata.dropna()
     return stockdata
 
 def MACD(data):
