@@ -141,7 +141,8 @@ class account:
         self.rate = precise / len(self.real_situation)
 
     def _cal_buy_and_hold(self):
-        self.buy_and_hold = sum(self.log_return)
+        #self.buy_and_hold = sum(self.log_return)
+        self.buy_and_hold = sum(self.log_return[1:])
 
     def _strategy(self, trade_day):
         if self.signal[trade_day]==0 and self.signal[trade_day+1]==0:
@@ -173,14 +174,22 @@ class account:
 
     def _cal_strategy(self):
         log_return = 0
-        for trade_day in range(len(self.log_return) - 1):
-            if self._strategy(trade_day):
-                if self.isHold:
-                    log_return += self.log_return[trade_day]
+#         for trade_day in range(len(self.log_return) - 1):
+#             if self._strategy(trade_day):
+#                 if self.isHold:
+#                     log_return += self.log_return[trade_day]
+#                 self.isHold = 1 - self.isHold
+#             else:
+#                 if self.isHold:
+#                     log_return += self.log_return[trade_day]
+#         self.strategy = log_return
+
+        for trade_day in range(1,len(self.log_return)):
+            if self.isHold:
+                log_return += self.log_return[trade_day]
+            if self._strategy(trade_day-1):
                 self.isHold = 1 - self.isHold
-            else:
-                if self.isHold:
-                    log_return += self.log_return[trade_day]
+            
         self.strategy = log_return
 
     def result(self):
@@ -211,4 +220,16 @@ def test_fun(stock_datas, funcs_params):
         rate.append(result[0])
         holding.append(result[1])
         strategy.append(result[2])
+    return rate, holding, strategy
+
+def revenue(stock_data):
+    rate=[]
+    holding = []
+    strategy=[]
+    
+    acc = account(stock_data)
+    result = acc.result()
+    rate.append(result[0])
+    holding.append(result[1])
+    strategy.append(result[2])
     return rate, holding, strategy
