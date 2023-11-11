@@ -183,7 +183,7 @@ class account:
 #                 if self.isHold:
 #                     log_return += self.log_return[trade_day]
 #         self.strategy = log_return
-        self.isHold=1 if self.sign[0]==1 else 0
+        self.isHold=1 if self.signal[0]==1 else 0
 
         for trade_day in range(1,len(self.log_return)):
             if self.isHold:
