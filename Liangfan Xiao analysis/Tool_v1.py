@@ -15,7 +15,8 @@ def days(months):
     i=1
     while i<months:
         #current_date = datetime.now()
-        current_date = datetime(year=2022, month=12, day=31)
+        #2023-9-30
+        current_date = datetime(year=2023, month=9, day=30)
         previous_date = current_date - relativedelta(months=i)
         previous_date  = previous_date.strftime("%Y-%m-%d")
         day_collector.append(previous_date)
@@ -26,9 +27,9 @@ def pct_change(stockname,start,end):
     stockdata=data.get_data_yahoo(tickers=stockname,start=start,end=end,progress=False)
     stockdata['Close_price_percentage'] = stockdata['Close'].pct_change()
     stockdata['real_situation'] = 0
-    stockdata.loc[stockdata['Close_price_percentage'] > 0,'real_situation'] = "涨"
-    stockdata.loc[stockdata['Close_price_percentage'] < 0,'real_situation'] ='跌'
-    stockdata.loc[stockdata['Close_price_percentage'] == 0,'real_situation'] ='不变'
+    stockdata.loc[stockdata['Close_price_percentage'] > 0,'real_situation'] = 1 # modified
+    stockdata.loc[stockdata['Close_price_percentage'] < 0,'real_situation'] =-1
+    stockdata.loc[stockdata['Close_price_percentage'] == 0,'real_situation'] =0
     stockdata["log_return"] = np.log(stockdata['Close'])-np.log(stockdata['Close'].shift(1))
     
     #Zhanhui Zhou create features
@@ -133,43 +134,43 @@ class account:
 
     def _cal_rate(self):
         precise = 0
-        for i in range(len(self.real_situation)):
-            if self.real_situation[i]=="涨" and self.signal[i]==1:
+        for i in range(len(self.real_situation) - 1):
+            if self.real_situation[i+1]==1 and self.signal[i]==1: # modified
                 precise += 1
-            elif self.real_situation[i]=="跌" and self.signal[i]==-1:
+            elif self.real_situation[i+1]==-1 and self.signal[i]==-1:
                 precise += 1
         self.rate = precise / len(self.real_situation)
 
     def _cal_buy_and_hold(self):
-        #self.buy_and_hold = sum(self.log_return)
-        self.buy_and_hold = sum(self.log_return[1:])
+        self.buy_and_hold = sum(self.log_return)
+     
 
-    def _strategy(self, trade_day):
-        if self.signal[trade_day]==0 and self.signal[trade_day+1]==0:
+    def _strategy(self, trade_day):# modified
+        if self.real_situation[trade_day]==0 and self.signal[trade_day]==0:
             return 0
             
-        elif self.signal[trade_day]==0 and self.signal[trade_day+1]==1:
+        elif self.real_situation[trade_day]==0 and self.signal[trade_day]==1:
             return 1
             
-        elif self.signal[trade_day]==0 and self.signal[trade_day+1]==-1:
-            return 0
+        elif self.real_situation[trade_day]==0 and self.signal[trade_day]==-1:
+            return  -1
             
-        elif self.signal[trade_day]==1 and self.signal[trade_day+1]==1:
-            return 0
-            
-        elif self.signal[trade_day]==1 and self.signal[trade_day+1]==-1:
+        elif self.real_situation[trade_day]==1 and self.signal[trade_day]==1:
             return 1
             
-        elif self.signal[trade_day]==1 and self.signal[trade_day+1]==0:
+        elif self.real_situation[trade_day]==1 and self.signal[trade_day]==-1:
+            return -1
+            
+        elif self.real_situation[trade_day]==1 and self.signal[trade_day]==0:
             return 0
             
-        elif self.signal[trade_day]==-1 and self.signal[trade_day+1]==-1:
-            return 0
+        elif self.real_situation[trade_day]==-1 and self.signal[trade_day]==-1:
+            return -1
             
-        elif self.signal[trade_day]==-1 and self.signal[trade_day+1]==1:
+        elif self.real_situation[trade_day]==-1 and self.signal[trade_day]==1:
             return 1
             
-        elif self.signal[trade_day]==-1 and self.signal[trade_day+1]==0:
+        elif self.real_situation[trade_day]==-1 and self.signal[trade_day]==0:
             return 0
 
     def _cal_strategy(self):
@@ -183,14 +184,32 @@ class account:
 #                 if self.isHold:
 #                     log_return += self.log_return[trade_day]
 #         self.strategy = log_return
-        self.isHold=1 if self.signal[0]==1 else 0
 
-        for trade_day in range(1,len(self.log_return)):
-            if self.isHold:
-                log_return += self.log_return[trade_day]
-            if self._strategy(trade_day-1):
-                self.isHold = 1 - self.isHold
+        # self.isHold=1 if self.signal[0]==1 else 0
+
+        # for trade_day in range(1,len(self.log_return)):
+        #     if self.isHold:
+        #         log_return += self.log_return[trade_day]
+        #     if self._strategy(trade_day-1):
+        #         self.isHold = 1 - self.isHold
             
+        # self.strategy = log_return
+
+        # modified
+        for trade_day in range(len(self.log_return)):
+            strategy = self._strategy(trade_day)
+            if strategy == 1:
+                if self.isHold:
+                    log_return += self.log_return[trade_day]
+                else:
+                    self.isHold = 1
+            elif strategy == 0:
+                if self.isHold:
+                    log_return += self.log_return[trade_day]
+            elif strategy == -1:
+                if self.isHold:
+                    log_return += self.log_return[trade_day]
+                    self.isHold = 0
         self.strategy = log_return
 
     def result(self):
